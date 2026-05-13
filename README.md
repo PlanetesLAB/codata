@@ -46,7 +46,7 @@ let duration_s = 2.0 * HOUR;
 ## Data Sources
 
 - **Physics**: [CODATA 2022 (NIST)](https://physics.nist.gov/cuu/Constants/Table/allascii.txt)
-- **Astronomy**: [Official IAU Resolutions](https://www.iau.org/publications/proceedings_rules/resolutions/) (specifically 2012 B2 and 2015 B3).
+- **Astronomy**: [Official IAU Resolutions](https://www.iau.org/IAU/Iau/Publications/List-of-Resolutions.aspx) (specifically 2012 B2 and 2015 B3).
 
 ## License
 
