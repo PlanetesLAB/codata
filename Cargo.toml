@@ -1,0 +1,12 @@
+[package]
+name = "codata"
+version = "0.1.0"
+edition = "2024"
+authors = ["S. Maitrey"]
+description = "A lightweight Rust crate providing CODATA 2022 physical and IAU 2015 astronomical constants"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+categories = ["science", "no-std"]
+keywords = ["physics", "astronomy", "constants", "codata", "iau"]
+
+[dependencies]
