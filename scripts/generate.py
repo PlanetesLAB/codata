@@ -117,51 +117,34 @@ def get_cgs_multiplier(unit_str):
     # N -> 1e5 dyn
     # T -> 1e4 G
     
-    # We'll handle the most common units found in CODATA
-    # Pattern matching for units like "m^3 kg^-1 s^-2"
     multiplier = 1.0
     
-    # Length
-    if "m" in unit_str:
-        # Match m, m^2, m^-1, etc.
-        m_matches = re.findall(r'm(?:\^([-0-9]+))?', unit_str)
-        for p in m_matches:
-            p = int(p) if p else 1
+    # Split unit string into individual parts (e.g., "m^3", "kg^-1")
+    # We look for units that are clearly separated by spaces
+    parts = unit_str.split()
+    
+    for part in parts:
+        # Match unit and optional power
+        match = re.match(r'^([a-zA-Z]+)(?:\^([-0-9]+))?$', part)
+        if not match:
+            continue
+            
+        unit, power = match.groups()
+        p = int(power) if power else 1
+        
+        if unit == "m":
             multiplier *= (100.0 ** p)
-            
-    # Mass
-    if "kg" in unit_str:
-        kg_matches = re.findall(r'kg(?:\^([-0-9]+))?', unit_str)
-        for p in kg_matches:
-            p = int(p) if p else 1
+        elif unit == "kg":
             multiplier *= (1000.0 ** p)
-    elif "g" in unit_str and "kg" not in unit_str: # e.g. "kg mol^-1"
-        pass # g is already CGS-ish but we usually start from kg in SI
-
-    # Energy/Power
-    if "J" in unit_str:
-        j_matches = re.findall(r'J(?:\^([-0-9]+))?', unit_str)
-        for p in j_matches:
-            p = int(p) if p else 1
+        elif unit == "J":
             multiplier *= (1e7 ** p)
-    if "W" in unit_str:
-        w_matches = re.findall(r'W(?:\^([-0-9]+))?', unit_str)
-        for p in w_matches:
-            p = int(p) if p else 1
+        elif unit == "W":
             multiplier *= (1e7 ** p)
-            
-    # Force
-    if "N" in unit_str and "N A^-2" not in unit_str: # Avoid confusion with units like "N A^-2"
-         n_matches = re.findall(r'N(?:\^([-0-9]+))?', unit_str)
-         for p in n_matches:
-             p = int(p) if p else 1
-             multiplier *= (1e5 ** p)
-             
-    # Magnetic field
-    if "T" in unit_str:
-        t_matches = re.findall(r'T(?:\^([-0-9]+))?', unit_str)
-        for p in t_matches:
-            p = int(p) if p else 1
+        elif unit == "N":
+            multiplier *= (1e5 ** p)
+        elif unit == "Pa":
+            multiplier *= (10.0 ** p)
+        elif unit == "T":
             multiplier *= (1e4 ** p)
 
     return multiplier
@@ -202,10 +185,15 @@ def main():
             if c['unit']:
                 f.write(f"/// Unit: {unit_doc}\n")
             f.write(f"/// Uncertainty: {c['uncertainty_str']}\n")
-            f.write(f"pub const {c['name']}_SI: f64 = {format_float(c['value'])};\n")
-            f.write(f"/// {name_doc} (CGS)\n")
-            f.write(f"pub const {c['name']}_CGS: f64 = {format_float(c['value'] * c['cgs_multiplier'])};\n")
-            f.write(f"pub const {c['name']}: f64 = {c['name']}_SI;\n\n")
+            
+            if abs(c['cgs_multiplier'] - 1.0) < 1e-15:
+                # Dimensionless or same in SI/CGS (e.g. ratios, relationships)
+                f.write(f"pub const {c['name']}: f64 = {format_float(c['value'])};\n\n")
+            else:
+                f.write(f"pub const {c['name']}_SI: f64 = {format_float(c['value'])};\n")
+                f.write(f"/// {name_doc} (CGS)\n")
+                f.write(f"pub const {c['name']}_CGS: f64 = {format_float(c['value'] * c['cgs_multiplier'])};\n")
+                f.write(f"pub const {c['name']}: f64 = {c['name']}_SI;\n\n")
 
         f.write("/// Detailed constant information including value, uncertainty, and unit.\n")
         f.write("#[allow(clippy::unreadable_literal)]\n")
